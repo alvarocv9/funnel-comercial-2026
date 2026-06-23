@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Funnel Comercial 2026</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:#f8f7f4;color:#1a1a1a;padding:1.5rem}
+  h1{font-size:20px;font-weight:500;margin-bottom:1.5rem}
+  .funnel-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:1.5rem}
+  .funnel-card{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;transition:border-color .15s}
+  .funnel-card:hover{border-color:#aaa}
+  .funnel-card.active{border-width:1.5px}
+  .funnel-card .count{font-size:22px;font-weight:500}
+  .funnel-card .label{font-size:11px;color:#666;margin-top:2px}
+  .funnel-card .pct{font-size:11px;color:#999}
+  .filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+  input[type=text],input[type=date],select,textarea{border:0.5px solid #ccc;border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a;outline:none}
+  input[type=text]:focus,input[type=date]:focus,select:focus,textarea:focus{border-color:#888}
+  button{border:0.5px solid #ccc;border-radius:6px;padding:6px 12px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a;cursor:pointer}
+  button:hover{background:#f0efe8}
+  .layout{display:grid;gap:12px}
+  .layout.with-panel{grid-template-columns:1fr 320px}
+  table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  th{text-align:left;padding:6px 8px;font-weight:500;font-size:12px;color:#666;border-bottom:0.5px solid #ddd}
+  td{padding:8px 8px;border-bottom:0.5px solid #eee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  tr.row:hover td{background:#f8f7f4;cursor:pointer}
+  tr.row.active td{background:#f0efe8}
+  .avatar{width:28px;height:28px;border-radius:50%;background:#dbeafe;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#1e40af;flex-shrink:0}
+  .name-cell{display:flex;align-items:center;gap:8px}
+  .badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;white-space:nowrap}
+  .stage-select{font-size:11px;padding:2px 4px;border-radius:6px;border-width:0.5px;cursor:pointer}
+  .panel{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1rem;position:sticky;top:1rem;align-self:start}
+  .panel-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+  .panel-avatar{width:40px;height:40px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#1e40af;flex-shrink:0}
+  .panel label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:10px}
+  .panel input,.panel select,.panel textarea{width:100%}
+  .panel textarea{resize:vertical;line-height:1.5;font-size:12px}
+  .btn-arpon{width:100%;margin-top:12px;background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .btn-arpon:hover{background:#333}
+  .close-btn{background:none;border:none;font-size:18px;color:#888;cursor:pointer;padding:0;line-height:1}
+  .search-input{flex:1;min-width:140px}
+  .count-label{font-size:12px;color:#666;margin-left:auto}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:100}
+  .modal{background:#fff;border-radius:12px;padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+  .modal h2{font-size:16px;font-weight:500;margin-bottom:1rem}
+  .modal label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:10px}
+  .modal input,.modal select,.modal textarea{width:100%}
+  .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+  @media(max-width:700px){.funnel-grid{grid-template-columns:repeat(3,1fr)}.layout.with-panel{grid-template-columns:1fr}.panel{position:static}}
+</style>
+</head>
+<body>
+
+<h1>Funnel comercial 2026</h1>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <h1 style="margin:0">Funnel comercial 2026</h1>
+  <button onclick="openModal()" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a">+ Nuevo contacto</button>
+</div>
+<div class="funnel-grid" id="funnelGrid"></div>
+
+<div class="filters">
+  <input type="text" id="searchInput" class="search-input" placeholder="Buscar nombre, empresa..." oninput="render()"/>
+  <select id="filterTier" onchange="render()">
+    <option value="">Todos los tiers</option>
+    <option>1</option><option>2 alto</option><option>2</option><option>3</option><option>4</option>
+  </select>
+  <button onclick="clearFilters()">✕ Limpiar</button>
+  <span class="count-label" id="countLabel"></span>
+</div>
+
+<div class="layout" id="layout">
+  <div style="overflow-x:auto"><table><thead><tr>
+    <th style="width:22%">Contacto</th>
+    <th style="width:18%">Empresa</th>
+    <th style="width:8%">Tier</th>
+    <th style="width:14%">Etapa</th>
+    <th style="width:24%">Próxima acción</th>
+    <th style="width:14%">Fecha</th>
+  </tr></thead><tbody id="tbody"></tbody></table></div>
+</div>
+
+<script>
+const STAGES = ["Identificado","Contactado","Respondido","Reunión","Propuesta","Cierre"];
+const STAGE_STYLE = {
+  "Identificado":{"bg":"#F1EFE8","color":"#5F5E5A","border":"#B4B2A9"},
+  "Contactado":  {"bg":"#E6F1FB","color":"#185FA5","border":"#85B7EB"},
+  "Respondido":  {"bg":"#EEEDFE","color":"#534AB7","border":"#AFA9EC"},
+  "Reunión":     {"bg":"#FAEEDA","color":"#854F0B","border":"#EF9F27"},
+  "Propuesta":   {"bg":"#FAECE7","color":"#993C1D","border":"#F0997B"},
+  "Cierre":      {"bg":"#EAF3DE","color":"#3B6D11","border":"#97C459"},
+};
+const TIER_STYLE = {
+  "1":     {"bg":"#FCEBEB","color":"#A32D2D"},
+  "2 alto":{"bg":"#FAEEDA","color":"#854F0B"},
+  "2":     {"bg":"#E6F1FB","color":"#185FA5"},
+  "3":     {"bg":"#F1EFE8","color":"#5F5E5A"},
+  "4":     {"bg":"#EEEDFE","color":"#534AB7"},
+};
+const STORAGE_KEY = "funnel-comercial-2026-v1";
+const INITIAL = [
+  {id:1, name:"Leticia Perrote Juanino",company:"Regeneron",role:"Senior Manager Commercialization",tier:"1",stage:"Identificado",nextAction:"Conversación informal pre-baja",nextDate:"",notes:"Relación muy cercana. Ya hubo 1ª reunión. Campeona interna, no es decisora final. Coordinar intro al decisor en sep."},
+  {id:2, name:"Enric Miquel",company:"Pharma New Talent",role:"Host - Pharma New Talent Podcast",tier:"1",stage:"Identificado",nextAction:"Estrategia específica: partnership / podcast",nextDate:"",notes:"Amigo de amigo. Contacto previo para faculty. Multiplicador clave: red de directores pharma. No tratar como outreach comercial."},
+  {id:3, name:"David Ogalla Belmonte",company:"Ferrer",role:"Sales Area Manager & Ecommerce Lead",tier:"1",stage:"Identificado",nextAction:"Café informal pre-baja (sin agenda comercial)",nextDate:"",notes:"Muy buena relación de universidad. Hablan por WhatsApp. Ferrer en proceso de integración → momento ideal para entrar en sep."},
+  {id:4, name:"Diego Jiménez Fortuny",company:"Quibim",role:"Quality Engineer",tier:"1",stage:"Identificado",nextAction:"Pedirle intro al CEO de Quibim",nextDate:"",notes:"Amigo muy cercano, han compartido piso. Caso de uso healthtech fuera de pharma core."},
+  {id:5, name:"Gerard de Antonio",company:"Neuraxpharm",role:"Middle East and Africa Area Manager",tier:"1",stage:"Identificado",nextAction:"Activación directa sep",nextDate:"",notes:"Compañero de Deloitte y amigo cercano. Encaje directo: GTM multi-geografía en pharma."},
+  {id:6, name:"Sergio Schmidt Pérez",company:"Menarini España",role:"Director Nacional de Ventas",tier:"2 alto",stage:"Identificado",nextAction:"Buscar conector (Enric / Marc / Claudi) o arpón directo",nextDate:"",notes:"Decisor directo. Sin relación (antiguo profesor academia). Activar en sep con offering empaquetado y caso FAES España documentado."},
+  {id:7, name:"Jordi Elvira Setó",company:"Esteve",role:"IT Business Partner CMO",tier:"2",stage:"Identificado",nextAction:"Reunión + pedirle intro al lado comercial",nextDate:"",notes:"Relación cercana de universidad. Reunión segura. Perfil IT pero puede conectar con comercial de Esteve."},
+  {id:8, name:"Paulina Segura Oñate",company:"Grifols",role:"Global Employer Branding Manager",tier:"2",stage:"Identificado",nextAction:"Pedirle intro a perfil directivo / comercial en Grifols",nextDate:"",notes:"Muy buena relación de KPMG. Grifols tiene red comercial enorme y necesidades de optimización."},
+  {id:9, name:"Pablo Garcia Puig",company:"Viatris",role:"Commercial Analytics Regional BP",tier:"2",stage:"Identificado",nextAction:"Activación directa sep",nextDate:"",notes:"Hermano de compañero de colegio. Leticia Perrote da contexto adicional sobre Viatris."},
+  {id:10, name:"Sergio Quesada Vázquez",company:"Laboratorios Ordesa",role:"Innovation Specialist",tier:"2",stage:"Identificado",nextAction:"Activación directa sep",nextDate:"",notes:"Amigo de amigo. Seguro que contesta. Caso de uso portabilidad del offering (nutrición)."},
+  {id:11, name:"Paula Núñez Cotovad",company:"ISDIN",role:"Global Innovation & BD Manager",tier:"2",stage:"Identificado",nextAction:"Vía principal de entrada en ISDIN",nextDate:"",notes:"Compañera de universidad de buen amigo + coincidieron en Deloitte. Doble conexión."},
+  {id:12, name:"Javier González-Hontoria",company:"Adeslas Dental",role:"Director",tier:"2",stage:"Identificado",nextAction:"Quedar para explorar casos de uso fuera pharma",nextDate:"",notes:"Relación laboral directa. Contactado en 2024 y abierto a quedar. Caso de uso sector asegurador/dental."},
+  {id:13, name:"Paula Sánchez Krag",company:"Roche",role:"Global Commercial Excellence Lead",tier:"3",stage:"Identificado",nextAction:"Coordinar con Claudi antes de mover nada",nextDate:"",notes:"Perfil ideal (Commercial Excellence global) pero relación fría + acercamiento previo de Signature a Roche. Alinear internamente."},
+  {id:14, name:"Quique Marroquín Llagostera",company:"Sanofi",role:"Portfolio Manager & Customer First Head",tier:"3",stage:"Identificado",nextAction:"Esperar a offering empaquetado + nuevo motivo",nextDate:"",notes:"Compañero de universidad. Propuesta de reunión sin respuesta jul 2024. Reactivar en sep con caso FAES documentado."},
+  {id:15, name:"Ana Forero",company:"AstraZeneca",role:"Medical Affairs Manager",tier:"3",stage:"Identificado",nextAction:"Coordinar con Marc (proyecto activo en AZ)",nextDate:"",notes:"Buena relación de KPMG + conexión con su padre. Hay que alinear con Marc antes de mover."},
+  {id:16, name:"Júlia Moix",company:"ISDIN",role:"Digital Sales / Global Ecommerce Head",tier:"3",stage:"Identificado",nextAction:"Segunda vía ISDIN si Paula Núñez no funciona",nextDate:"",notes:"Compañera de universidad, hace años que no hablan."},
+  {id:17, name:"Marta López Sanromà",company:"Laboratorios Gebro Pharma",role:"Medical Manager",tier:"3",stage:"Identificado",nextAction:"Punto de entrada en Gebro → intro a perfil comercial",nextDate:"",notes:"Compañera de universidad. Gebro mid-size español, buen target."},
+  {id:18, name:"Lara Verdugo",company:"ISDIN",role:"Head of Sales",tier:"3",stage:"Identificado",nextAction:"Activar si ISDIN USA es target",nextDate:"",notes:"Coincidieron en residencia de estudiantes. Trabaja en USA → baja prioridad para España."},
+  {id:19, name:"Miquel Talavera Foix",company:"Klinea BioPharmaceutical",role:"Specialty Lead Automation",tier:"3",stage:"Identificado",nextAction:"Reunión segura → pedirle presentación",nextDate:"",notes:"Compañero de universidad con relación cercana."},
+  {id:20, name:"Marta Piqué Saboya",company:"Almirall",role:"CRM Coordinator",tier:"3",stage:"Identificado",nextAction:"Punto de entrada en Almirall si conecta con comercial",nextDate:"",notes:"Compañera de universidad, no han hablado desde entonces."},
+  {id:21, name:"Laura Gil",company:"Roche",role:"Divisional Strategy Lead, Roche Diagnostics",tier:"3",stage:"Identificado",nextAction:"Coordinar con Claudi (segunda vía en Roche)",nextDate:"",notes:"Compañera de universidad, poca relación. Basada en Suiza. Contactada en ene 2025."},
+  {id:22, name:"Camila Abella Gomez",company:"Johnson & Johnson",role:"Business Insight & Strategy PM",tier:"3",stage:"Identificado",nextAction:"Contactar si se acuerda de Deloitte",nextDate:"",notes:"Poca relación de Deloitte. J&J enorme, difícil sin contacto fuerte."},
+  {id:23, name:"Marc Viñas Fernandez",company:"Eli Lilly",role:"Manager Financial Analysis",tier:"3",stage:"Identificado",nextAction:"Puede conectar con decisor comercial",nextDate:"",notes:"Compañero de KPMG. Perfil financiero, camino largo hasta decisor comercial."},
+  {id:24, name:"Gerard Lombarte Ros",company:"ISDIN",role:"Global Digital Supply Chain Manager",tier:"4",stage:"Identificado",nextAction:"Complementa entrada ISDIN si otras vías fallan",nextDate:"",notes:"Amigo de Gerard de Antonio, iban en bici juntos."},
+  {id:25, name:"Patricia Sanabria Castro",company:"Alexion",role:"Global Marketing Pipeline Lead",tier:"4",stage:"Identificado",nextAction:"No priorizar",nextDate:"",notes:"Antiguo profesor de academia, probablemente no se acuerda."},
+  {id:26, name:"Eduard Abella Curiel",company:"Grupo Indukern",role:"Salesforce Project Manager",tier:"4",stage:"Identificado",nextAction:"No priorizar",nextDate:"",notes:"Hermano de compañero de colegio. Perfil CRM, empresa menos target."},
+  {id:27, name:"Marc Garcés Yus",company:"Laboratorios Karizoo",role:"Marketing and Purchasing Manager",tier:"4",stage:"Identificado",nextAction:"No priorizar",nextDate:"",notes:"Relación mínima de universidad. Animal health, sector diferente."},
+];
+
+let contacts = [];
+let selectedId = null;
+let filterStage = "";
+
+function openModal(id) {
+  const c = id ? contacts.find(x=>x.id===id) : null;
+  const tierOpts = ["1","2 alto","2","3","4"].map(t=>`<option${c?.tier===t?' selected':''}>${t}</option>`).join("");
+  const stageOpts = STAGES.map(s=>`<option${c?.stage===s?' selected':''}>${s}</option>`).join("");
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.id = "modalOverlay";
+  overlay.innerHTML = `<div class="modal">
+    <h2>${c?'Editar contacto':'Nuevo contacto'}</h2>
+    <label>Nombre completo *</label>
+    <input id="f_name" type="text" value="${c?.name||''}"/>
+    <label>Empresa *</label>
+    <input id="f_company" type="text" value="${c?.company||''}"/>
+    <label>Cargo</label>
+    <input id="f_role" type="text" value="${c?.role||''}"/>
+    <label>Tier</label>
+    <select id="f_tier">${tierOpts}</select>
+    <label>Etapa</label>
+    <select id="f_stage">${stageOpts}</select>
+    <label>Próxima acción</label>
+    <input id="f_nextAction" type="text" value="${c?.nextAction||''}"/>
+    <label>Fecha próxima acción</label>
+    <input id="f_nextDate" type="date" value="${c?.nextDate||''}"/>
+    <label>Notas</label>
+    <textarea id="f_notes" rows="4">${c?.notes||''}</textarea>
+    <div class="modal-footer">
+      <button onclick="closeModal()">Cancelar</button>
+      <button onclick="saveContact(${c?.id||'null'})" style="background:#1a1a1a;color:#fff;border-color:#1a1a1a">${c?'Guardar cambios':'Añadir contacto'}</button>
+    </div>
+  </div>`;
+  overlay.addEventListener("click", e => { if(e.target===overlay) closeModal(); });
+  document.body.appendChild(overlay);
+  document.getElementById("f_name").focus();
+}
+
+function closeModal() {
+  const o = document.getElementById("modalOverlay");
+  if(o) o.remove();
+}
+
+function saveContact(id) {
+  const name = document.getElementById("f_name").value.trim();
+  const company = document.getElementById("f_company").value.trim();
+  if(!name || !company){ alert("Nombre y empresa son obligatorios."); return; }
+  if(id) {
+    const c = contacts.find(x=>x.id===id);
+    if(c){ c.name=name; c.company=company; c.role=document.getElementById("f_role").value.trim(); c.tier=document.getElementById("f_tier").value; c.stage=document.getElementById("f_stage").value; c.nextAction=document.getElementById("f_nextAction").value.trim(); c.nextDate=document.getElementById("f_nextDate").value; c.notes=document.getElementById("f_notes").value.trim(); }
+  } else {
+    const newId = Math.max(...contacts.map(c=>c.id)) + 1;
+    contacts.push({ id:newId, name, company, role:document.getElementById("f_role").value.trim(), tier:document.getElementById("f_tier").value, stage:document.getElementById("f_stage").value, nextAction:document.getElementById("f_nextAction").value.trim(), nextDate:document.getElementById("f_nextDate").value, notes:document.getElementById("f_notes").value.trim() });
+  }
+  save(); closeModal(); render();
+}
+
+function load() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) contacts = JSON.parse(s); else contacts = INITIAL.map(c=>({...c})); }
+  catch(e) { contacts = INITIAL.map(c=>({...c})); }
+}
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); }
+
+function initials(name) { return name.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase(); }
+
+function renderFunnel() {
+  const grid = document.getElementById("funnelGrid");
+  grid.innerHTML = STAGES.map(s => {
+    const cnt = contacts.filter(c=>c.stage===s).length;
+    const pct = Math.round(cnt/contacts.length*100);
+    const st = STAGE_STYLE[s];
+    const isActive = filterStage === s;
+    return `<div class="funnel-card${isActive?' active':''}" onclick="toggleStageFilter('${s}')"
+      style="${isActive?`border-color:${st.border};background:${st.bg}`:''}">
+      <div class="count" style="color:${st.color}">${cnt}</div>
+      <div class="label">${s}</div>
+      <div class="pct">${pct}%</div>
+    </div>`;
+  }).join("");
+}
+
+function toggleStageFilter(s) { filterStage = filterStage===s?"":s; render(); }
+function clearFilters() { filterStage=""; document.getElementById("searchInput").value=""; document.getElementById("filterTier").value=""; render(); }
+
+function getFiltered() {
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const tier = document.getElementById("filterTier").value;
+  return contacts.filter(c => {
+    if (filterStage && c.stage!==filterStage) return false;
+    if (tier && c.tier!==tier) return false;
+    if (search && !`${c.name} ${c.company} ${c.role}`.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function render() {
+  renderFunnel();
+  const filtered = getFiltered();
+  document.getElementById("countLabel").textContent = `${filtered.length} contactos`;
+
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = filtered.map(c => {
+    const ss = STAGE_STYLE[c.stage];
+    const ts = TIER_STYLE[c.tier]||TIER_STYLE["4"];
+    const isActive = c.id===selectedId;
+    const stageOpts = STAGES.map(s=>`<option${s===c.stage?' selected':''}>${s}</option>`).join("");
+    return `<tr class="row${isActive?' active':''}" data-id="${c.id}" onclick="selectContact(${c.id})">
+      <td><div class="name-cell"><div class="avatar">${initials(c.name)}</div><span style="font-weight:500;overflow:hidden;text-overflow:ellipsis">${c.name}</span></div></td>
+      <td style="color:#555">${c.company}</td>
+      <td><span class="badge" style="background:${ts.bg};color:${ts.color}">T${c.tier}</span></td>
+      <td><select class="stage-select" style="background:${ss.bg};color:${ss.color};border-color:${ss.border}" onclick="event.stopPropagation()" onchange="updateField(${c.id},'stage',this.value)">${stageOpts}</select></td>
+      <td style="color:#555;font-size:12px">${c.nextAction||"—"}</td>
+      <td><input type="date" value="${c.nextDate||''}" onclick="event.stopPropagation()" onchange="updateField(${c.id},'nextDate',this.value)" style="width:100%;font-size:11px;padding:2px 4px"/></td>
+    </tr>`;
+  }).join("");
+
+  renderPanel();
+}
+
+function updateField(id, field, value) {
+  const c = contacts.find(x=>x.id===id);
+  if(c){ c[field]=value; save(); render(); }
+}
+
+function selectContact(id) {
+  selectedId = selectedId===id ? null : id;
+  document.getElementById("layout").className = selectedId ? "layout with-panel" : "layout";
+  render();
+}
+
+function renderPanel() {
+  const layout = document.getElementById("layout");
+  const existing = document.getElementById("sidePanel");
+  if(existing) existing.remove();
+  if(!selectedId) return;
+  const c = contacts.find(x=>x.id===selectedId);
+  if(!c) return;
+  const ts = TIER_STYLE[c.tier]||TIER_STYLE["4"];
+  const stageOpts = STAGES.map(s=>`<option${s===c.stage?' selected':''}>${s}</option>`).join("");
+  const tierOpts = ["1","2 alto","2","3","4"].map(t=>`<option${t===c.tier?' selected':''}>${t}</option>`).join("");
+  const panel = document.createElement("div");
+  panel.id = "sidePanel";
+  panel.className = "panel";
+  panel.innerHTML = `
+    <div class="panel-header">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="panel-avatar">${initials(c.name)}</div>
+        <div>
+          <div style="font-weight:500;font-size:14px">${c.name}</div>
+          <div style="font-size:12px;color:#666">${c.company}</div>
+        </div>
+      </div>
+      <button class="close-btn" onclick="selectContact(${c.id})">✕</button>
+    </div>
+    <div style="font-size:12px;color:#666;margin-bottom:12px">${c.role}</div>
+    <label>Tier</label>
+    <select onchange="updateField(${c.id},'tier',this.value)">${tierOpts}</select>
+    <label>Etapa</label>
+    <select onchange="updateField(${c.id},'stage',this.value)">${stageOpts}</select>
+    <label>Próxima acción</label>
+    <input type="text" value="${c.nextAction||''}" oninput="updateField(${c.id},'nextAction',this.value)"/>
+    <label>Fecha próxima acción</label>
+    <input type="date" value="${c.nextDate||''}" onchange="updateField(${c.id},'nextDate',this.value)"/>
+    <label>Notas</label>
+    <textarea rows="6" oninput="updateField(${c.id},'notes',this.value)">${c.notes||''}</textarea>
+    <button class="btn-arpon" onclick="copyArpon(${c.id})">Copiar contexto para arpón ↗</button>
+  `;
+  layout.appendChild(panel);
+}
+
+function copyArpon(id) {
+  const c = contacts.find(x=>x.id===id);
+  if(!c) return;
+  const txt = `Prepárame el mensaje de activación (arpón afilado) para:\nNombre: ${c.name}\nEmpresa: ${c.company}\nCargo: ${c.role}\nTier: ${c.tier}\nNotas: ${c.notes}`;
+  navigator.clipboard.writeText(txt).then(()=>alert("Contexto copiado. Pégalo en el chat de Claude para preparar el arpón.")).catch(()=>alert(txt));
+}
+
+load();
+render();
+</script>
+</body>
+</html>
