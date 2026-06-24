@@ -250,9 +250,9 @@ function render() {
   renderPanel();
 }
 
-function updateField(id, field, value) {
+function updateField(id, field, value, skipRender) {
   const c = contacts.find(x=>x.id===id);
-  if(c){ c[field]=value; save(); render(); }
+  if(c){ c[field]=value; save(); if(!skipRender) render(); }
 }
 
 function selectContact(id) {
@@ -291,11 +291,11 @@ function renderPanel() {
     <label>Etapa</label>
     <select onchange="updateField(${c.id},'stage',this.value)">${stageOpts}</select>
     <label>Próxima acción</label>
-    <input type="text" value="${c.nextAction||''}" oninput="updateField(${c.id},'nextAction',this.value)"/>
+    <input type="text" value="${c.nextAction||''}" oninput="updateField(${c.id},'nextAction',this.value,true)"/>
     <label>Fecha próxima acción</label>
     <input type="date" value="${c.nextDate||''}" onchange="updateField(${c.id},'nextDate',this.value)"/>
     <label>Notas</label>
-    <textarea rows="6" oninput="updateField(${c.id},'notes',this.value)">${c.notes||''}</textarea>
+    <textarea rows="6" oninput="updateField(${c.id},'notes',this.value,true)">${c.notes||''}</textarea>
     <button class="btn-arpon" onclick="copyArpon(${c.id})">Copiar contexto para arpón ↗</button>
   `;
   layout.appendChild(panel);
